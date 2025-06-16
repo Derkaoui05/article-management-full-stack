@@ -2,7 +2,6 @@
 
 ArticleHub est une application web moderne de gestion d'articles, construite avec React, TypeScript et Spring Boot. Elle offre une interface utilisateur intuitive pour gérer votre inventaire d'articles avec facilité.
 
-![ArticleHub Screenshot](screenshot.png)
 
 ## 🌟 Fonctionnalités
 
@@ -47,8 +46,8 @@ ArticleHub est une application web moderne de gestion d'articles, construite ave
 1. Clonez le repository :
 
 ```bash
-git clone [URL_DU_REPO]
-cd article-hub/frontend
+git clone https://github.com/Derkaoui05/article-management-full-stack.git
+cd article-management-full-stack/client
 ```
 
 2. Installez les dépendances :
