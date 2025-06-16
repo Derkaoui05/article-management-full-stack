@@ -22,12 +22,9 @@ export const createArticle = async (article: Article): Promise<Article> => {
 
 export const updateArticle = async (
   code: string,
-  articleUpdate: ArticleUpdate
+  articleUpdate: ArticleUpdate,
 ): Promise<Article> => {
-  const response = await apiService.put<Article>(
-    `/articles/update/${code}`,
-    articleUpdate
-  );
+  const response = await apiService.put<Article>(`/articles/update/${code}`, articleUpdate);
   return response.data;
 };
 

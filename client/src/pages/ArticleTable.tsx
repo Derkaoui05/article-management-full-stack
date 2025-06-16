@@ -1,47 +1,96 @@
-"use client"
+'use client';
 
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import type { Article } from "@/services/article-service"
-import { getArticles } from "@/services/article-service"
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { Edit3, Trash2, Plus, Package, RefreshCw } from "lucide-react"
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import type { Article } from '@/services/article-service';
+import { deleteArticle, getArticles } from '@/services/article-service';
+import { Edit3, Package, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 function ArticleTable() {
-  const [articles, setArticles] = useState<Article[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
+  const navigate = useNavigate();
+  const { code: deleteCode } = useParams<{ code: string }>();
 
   const fetchData = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      const data = await getArticles()
-      setArticles(Array.isArray(data) ? data : [])
+      setLoading(true);
+      setError(null);
+      const data = await getArticles();
+      setArticles(Array.isArray(data) ? data : []);
     } catch (error) {
-      setError("Erreur lors de la récupération des articles. Veuillez réessayer.")
-      console.error("Erreur lors de la récupération des articles :", error)
-      setArticles([])
+      setError('Erreur lors de la récupération des articles. Veuillez réessayer.');
+      console.error('Erreur lors de la récupération des articles :', error);
+      setArticles([]);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (deleteCode) {
+      const article = articles.find((a) => a.code === deleteCode);
+      if (article) {
+        setArticleToDelete(article);
+        setDeleteDialogOpen(true);
+      }
+    }
+  }, [deleteCode, articles]);
+
+  const handleDelete = async () => {
+    if (!articleToDelete) return;
+
+    try {
+      setLoading(true);
+      await deleteArticle(articleToDelete.code);
+      await fetchData();
+      setDeleteDialogOpen(false);
+      setArticleToDelete(null);
+      navigate('/articles');
+    } catch (error) {
+      setError("Erreur lors de la suppression de l'article. Veuillez réessayer.");
+      console.error('Error deleting article:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("fr-MA", {
-      style: "currency",
-      currency: "MAD",
-    }).format(price)
-  }
+    return new Intl.NumberFormat('fr-MA', {
+      style: 'currency',
+      currency: 'MAD',
+    }).format(price);
+  };
 
   if (error) {
     return (
@@ -60,7 +109,7 @@ function ArticleTable() {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
@@ -71,7 +120,9 @@ function ArticleTable() {
             <Package className="h-8 w-8 text-primary" />
             Gestion des Articles
           </h1>
-          <p className="text-muted-foreground">Gérez votre inventaire d'articles et leurs informations</p>
+          <p className="text-muted-foreground">
+            Gérez votre inventaire d'articles et leurs informations
+          </p>
         </div>
         <Link to="/articles/new">
           <Button className="gap-2 shadow-lg hover:shadow-xl transition-shadow">
@@ -89,7 +140,7 @@ function ArticleTable() {
               Liste des articles
               {!loading && (
                 <Badge variant="secondary" className="ml-2">
-                  {articles.length} article{articles.length !== 1 ? "s" : ""}
+                  {articles.length} article{articles.length !== 1 ? 's' : ''}
                 </Badge>
               )}
             </CardTitle>
@@ -114,7 +165,9 @@ function ArticleTable() {
                   <TableHead className="font-semibold text-foreground">Code</TableHead>
                   <TableHead className="font-semibold text-foreground">Désignation</TableHead>
                   <TableHead className="font-semibold text-foreground">Prix</TableHead>
-                  <TableHead className="font-semibold text-foreground text-center">Actions</TableHead>
+                  <TableHead className="font-semibold text-foreground text-center">
+                    Actions
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -165,7 +218,10 @@ function ArticleTable() {
                   </TableRow>
                 ) : (
                   articles.map((article) => (
-                    <TableRow key={article.code} className="hover:bg-muted/30 transition-colors group">
+                    <TableRow
+                      key={article.code}
+                      className="hover:bg-muted/30 transition-colors group"
+                    >
                       <TableCell className="font-mono font-medium">
                         <Badge variant="outline" className="font-mono">
                           {article.code}
@@ -179,7 +235,7 @@ function ArticleTable() {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity">
-                          <Link to={`/articles/${article.code}/edit`}>
+                          <Link to={`/articles/update/${article.code}`}>
                             <Button
                               variant="outline"
                               size="sm"
@@ -189,16 +245,18 @@ function ArticleTable() {
                               Modifier
                             </Button>
                           </Link>
-                          <Link to={`/articles/${article.code}`}>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700 dark:hover:bg-red-950 dark:hover:border-red-800 dark:hover:text-red-300"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Supprimer
-                            </Button>
-                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-700 dark:hover:bg-red-950 dark:hover:border-red-800 dark:hover:text-red-300"
+                            onClick={() => {
+                              setArticleToDelete(article);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Supprimer
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -209,8 +267,45 @@ function ArticleTable() {
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cet article ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. L'article "{articleToDelete?.designation}" sera
+              définitivement supprimé.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setArticleToDelete(null);
+                navigate('/articles');
+              }}
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Suppression...
+                </>
+              ) : (
+                'Supprimer'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
-  )
+  );
 }
 
-export default ArticleTable
+export default ArticleTable;
