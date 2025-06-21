@@ -5,4 +5,4 @@ const apiService = axios.create({
   baseURL: 'http://localhost:8080',
 });
 
-export default apiService;
+export default apiService

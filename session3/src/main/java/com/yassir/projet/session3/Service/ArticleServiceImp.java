@@ -15,7 +15,12 @@ public class ArticleServiceImp implements IArticleService{
 
     @Override
     public void createArticle(Article article) {
-        articleRepository.save(article);
+        if (articleRepository.existsById(article.getCode())){
+            System.out.println("article already exists");
+        }
+        else {
+            articleRepository.save(article);
+        }
     }
 
     @Override
