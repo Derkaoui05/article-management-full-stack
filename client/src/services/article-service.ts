@@ -7,7 +7,6 @@ export interface Article {
   price: number;
 }
 
-// Update the article type to exclude code for update operations
 export type ArticleUpdate = Omit<Article, 'code'>;
 
 export const getArticles = async (): Promise<Article[]> => {

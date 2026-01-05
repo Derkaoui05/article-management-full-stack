@@ -223,7 +223,7 @@ function ArticleTable() {
                       className="hover:bg-muted/30 transition-colors group"
                     >
                       <TableCell className="font-mono font-medium">
-                        <Badge variant="outline" className="font-mono">
+                        <Badge variant="outline" className="font-mono bg-blue-400 px-2 py-1 rounded-md text-white">
                           {article.code}
                         </Badge>
                       </TableCell>
