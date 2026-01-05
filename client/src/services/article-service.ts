@@ -40,3 +40,9 @@ export const getArticleByCode = async (code: string): Promise<Article> => {
   const response = await apiService.get<Article>(`/articles/${code}`);
   return response.data;
 };
+export const getArticleByDesignation = async (designation: string): Promise<Article> => {
+  const response = await apiService.get<Article>(
+    `/articles/designation/${designation}`,
+  );
+  return response.data;
+};
