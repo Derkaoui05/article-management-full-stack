@@ -1,5 +1,6 @@
 'use client';
 
+import Filter from '@/components/Filter';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   AlertDialog,
@@ -26,7 +27,7 @@ import {
 import type { Article } from '@/services/article-service';
 import { deleteArticle, getArticles } from '@/services/article-service';
 import { Edit3, Package, Plus, RefreshCw, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 function ArticleTable() {
@@ -35,6 +36,7 @@ function ArticleTable() {
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [articleToDelete, setArticleToDelete] = useState<Article | null>(null);
+  const [filters, setFilters] = useState({ code: '', designation: '' });
   const navigate = useNavigate();
   const { code: deleteCode } = useParams<{ code: string }>();
 
@@ -66,6 +68,28 @@ function ArticleTable() {
       }
     }
   }, [deleteCode, articles]);
+
+  // Filtered articles using useMemo for performance
+  const filteredArticles = useMemo(() => {
+    if (!filters.code && !filters.designation) {
+      return articles;
+    }
+
+    return articles.filter((article) => {
+      const matchesCode = filters.code
+        ? article.code.toLowerCase().includes(filters.code.toLowerCase())
+        : true;
+      const matchesDesignation = filters.designation
+        ? article.designation.toLowerCase().includes(filters.designation.toLowerCase())
+        : true;
+
+      return matchesCode && matchesDesignation;
+    });
+  }, [articles, filters]);
+
+  const handleFilterChange = (newFilters: { code: string; designation: string }) => {
+    setFilters(newFilters);
+  };
 
   const handleDelete = async () => {
     if (!articleToDelete) return;
@@ -132,6 +156,13 @@ function ArticleTable() {
         </Link>
       </div>
 
+      {/* Filter Component */}
+      <Card className="shadow-md border-0 bg-muted/30">
+        <CardContent className="pt-6">
+          <Filter onFilterChange={handleFilterChange} />
+        </CardContent>
+      </Card>
+
       <Card className="shadow-lg border-0 bg-gradient-to-br from-background to-muted/20">
         <CardHeader className="border-b bg-muted/30">
           <div className="flex items-center justify-between">
@@ -139,8 +170,9 @@ function ArticleTable() {
               <Package className="h-5 w-5 text-primary" />
               Liste des articles
               {!loading && (
-                <Badge variant="secondary" className="ml-2">
-                  {articles.length} article{articles.length !== 1 ? 's' : ''}
+                <Badge variant="secondary" className="ml-2 mt-2">
+                  {filteredArticles.length} article{filteredArticles.length !== 1 ? 's' : ''}
+                  {(filters.code || filters.designation) && ` sur ${articles.length}`}
                 </Badge>
               )}
             </CardTitle>
@@ -200,30 +232,44 @@ function ArticleTable() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ) : articles.length === 0 ? (
+                ) : filteredArticles.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-12">
                       <div className="flex flex-col items-center gap-3 text-muted-foreground">
                         <Package className="h-12 w-12 opacity-50" />
-                        <p className="text-lg font-medium">Aucun article trouvé</p>
-                        <p className="text-sm">Commencez par ajouter votre premier article</p>
-                        <Link to="/articles/new">
-                          <Button className="mt-2 gap-2">
-                            <Plus className="h-4 w-4" />
-                            Ajouter un article
-                          </Button>
-                        </Link>
+                        {articles.length === 0 ? (
+                          <>
+                            <p className="text-lg font-medium">Aucun article trouvé</p>
+                            <p className="text-sm">Commencez par ajouter votre premier article</p>
+                            <Link to="/articles/new">
+                              <Button className="mt-2 gap-2">
+                                <Plus className="h-4 w-4" />
+                                Ajouter un article
+                              </Button>
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-lg font-medium">
+                              Aucun article ne correspond aux critères
+                            </p>
+                            <p className="text-sm">Essayez de modifier vos filtres de recherche</p>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  articles.map((article) => (
+                  filteredArticles.map((article) => (
                     <TableRow
                       key={article.code}
                       className="hover:bg-muted/30 transition-colors group"
                     >
                       <TableCell className="font-mono font-medium">
-                        <Badge variant="outline" className="font-mono bg-blue-400 px-2 py-1 rounded-md text-white">
+                        <Badge
+                          variant="outline"
+                          className="font-mono bg-blue-400 px-2 py-1 rounded-md text-white"
+                        >
                           {article.code}
                         </Badge>
                       </TableCell>
